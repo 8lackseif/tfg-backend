@@ -4,4 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rocket = "0.4.11"
+dotenv = "0.15.0"
+lazy_static = "1.4.0"
+rocket = "0.5"
+rocket_cors = "0.6.0"
+sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql"] }
+tokio = { version = "1", features = ["full"] }
