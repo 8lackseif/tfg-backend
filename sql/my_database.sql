@@ -1,7 +1,8 @@
 create table users(
 	id int auto_increment primary key,
   username varchar(30) not null UNIQUE,
-  pwd varchar(255) not null
+  pwd varchar(255) not null,
+  salt varchar(255) not null
 );
 
 create table products(

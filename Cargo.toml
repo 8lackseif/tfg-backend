@@ -4,9 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+argon2 = "0.5.3"
 dotenv = "0.15.0"
 lazy_static = "1.4.0"
-rocket = "0.5"
+rocket = { version = "0.5", features = ["json"] }
 rocket_cors = "0.6.0"
+serde = "1.0.197"
 sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql"] }
+thiserror = "1.0.58"
 tokio = { version = "1", features = ["full"] }

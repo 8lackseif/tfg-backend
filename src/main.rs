@@ -5,31 +5,18 @@
 
 mod database;
 
-use database::users::{query_users, User};
+use database::{users::{query_users, register_user, UserData}, MyError};
 use dotenv::dotenv;
-// use rocket::response::{Response, Responder};
-// use rocket::Request;
-// use rocket::http::{Status, ContentType};
-// use std::io::Cursor;
 
-// use rocket::http::Method;
 use rocket_cors::{AllowedOrigins, CorsOptions};
+use rocket::serde::json::Json;
 
+#[post("/register" ,format="json" ,data ="<data>")]
+async fn register(data: Json<UserData>) -> Result<String,MyError> {
+    register_user(&data.username,&data.pwd).await?;
+    Ok("user registered".to_string())
+} 
 
-#[derive(Debug, Clone, PartialEq)]
-struct Content {
-    message : String,  
-}
-
-// impl Responder<'static> for Content {
-//     fn respond_to(self, _: &Request) -> Result<Response<'static>, Status> {
-//         Response::build()
-//             .header(ContentType::Plain)
-//             .sized_body(Cursor::new(self.message))
-//             .raw_header("Access-Control-Allow-Origin", "*")
-//             .ok()
-//     }
-// }
 
 
 #[post("/login")]
@@ -45,6 +32,6 @@ async fn main() {
         .allowed_origins(AllowedOrigins::all())
         .allow_credentials(true);
 
-    rocket::build().attach(cors.to_cors().unwrap()).mount("/", routes![login]).launch().await.unwrap();
+    rocket::build().attach(cors.to_cors().unwrap()).mount("/", routes![login,register]).launch().await.unwrap();
 }
 
