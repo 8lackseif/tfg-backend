@@ -7,6 +7,7 @@ create table users(
 
 create table products(
   id int auto_increment primary key,
+  code varchar(30) not null UNIQUE,
   name varchar(30) not null,
   description varchar(50) default "",
   stock int default 0

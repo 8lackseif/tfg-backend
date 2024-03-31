@@ -5,11 +5,12 @@
 
 mod database;
 
-use database::{users::{query_users, register_user, UserData}, MyError};
+use database::{products::{query_products, Product, Products}, users::{login_user, query_users, register_user, UserData}, MyError};
 use dotenv::dotenv;
 
 use rocket_cors::{AllowedOrigins, CorsOptions};
-use rocket::serde::json::Json;
+use rocket::{futures::task::ArcWake, serde::json::Json};
+use sqlx::query_builder;
 
 #[post("/register" ,format="json" ,data ="<data>")]
 async fn register(data: Json<UserData>) -> Result<String,MyError> {
@@ -19,10 +20,16 @@ async fn register(data: Json<UserData>) -> Result<String,MyError> {
 
 
 
-#[post("/login")]
-async fn login() -> String {
-    query_users().await;
-    "hola".to_string()
+#[post("/login", format="json", data="<data>")]
+async fn login(data: Json<UserData>) -> Result<String,MyError> {
+    let token = login_user(&data.username, &data.pwd).await?;
+    Ok(token)
+}
+
+#[get("/get_products")]
+async fn get_products() -> Result<Json<Products>,MyError> {
+    let products = query_products().await?;
+    Ok(products)
 }
 
 #[tokio::main]
@@ -32,6 +39,6 @@ async fn main() {
         .allowed_origins(AllowedOrigins::all())
         .allow_credentials(true);
 
-    rocket::build().attach(cors.to_cors().unwrap()).mount("/", routes![login,register]).launch().await.unwrap();
+    rocket::build().attach(cors.to_cors().unwrap()).mount("/", routes![login,register,get_products]).launch().await.unwrap();
 }
 

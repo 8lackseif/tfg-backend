@@ -2,11 +2,12 @@ use sqlx::{mysql::MySqlPoolOptions, MySql, Pool};
 use thiserror::Error;
 
 pub mod users;
+pub mod products;
 
 lazy_static!{
     static ref POOL: Pool<MySql> = MySqlPoolOptions::new()
         .max_connections(5)
-        .connect_lazy("mysql://root:@localhost/my_database").unwrap();
+        .connect_lazy(&dotenv::var("DATABASE_URL").expect("failed to find DATABASE_URL on env")).unwrap();
 }
 
 
@@ -19,6 +20,13 @@ pub enum MyError{
     #[error("Internal error")]
     #[response(status=500)]
     InternalError(String),
+    #[error("login failed")]
+    #[response(status=401)]
+    LoginError(String),
+    #[error("user not found")]
+    #[response(status=404)]
+    UserNotFoundError(String),
+
 
 }
 
