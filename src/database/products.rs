@@ -1,37 +1,53 @@
-use rocket::serde::{self, Deserialize, Serialize,json::Json};
+use rocket::serde::{self, json::Json, Deserialize, Serialize};
 
 use super::{MyError, POOL};
 use argon2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
-    Argon2
+    password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
+    Argon2,
 };
 use hmac::{Hmac, Mac};
 use jwt::SignWithKey;
 use sha2::Sha256;
 use std::{collections::BTreeMap, fmt::format};
 
-
-#[derive(Debug,Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Product {
-    id : i32,
+    id: i32,
     code: String,
-    name : String,
-    description : Option<String>,
-    stock : Option<i32>
+    name: String,
+    description: Option<String>,
+    stock: Option<i32>,
+    tags: Option<String>,
 }
 
-#[derive(Debug,Serialize)]
+
+#[derive(Debug, Serialize)]
 pub struct Products {
     products: Vec<Product>,
 }
 
-pub async fn query_products()-> Result<Json<Products>,MyError> { 
+pub async fn query_products() -> Result<Json<Products>, MyError> {
     let pool = POOL.clone();
-    let products = sqlx::query_as!(Product,
-        "SELECT * FROM products").fetch_all(&pool).await?;
-    Ok(Json(Products{products: products}))
-}
+    let products = sqlx::query_as!(
+        Product,
+        "SELECT 
+        p.id, 
+        p.code,
+        p.name,
+        p.description,
+        p.stock,
+        JSON_ARRAYAGG(t.name) AS tags
+    FROM 
+        products p
+    INNER JOIN 
+        productsTotags pt ON p.id = pt.productID
+    INNER JOIN 
+        tags t ON pt.tagID = t.id
+    GROUP BY
+        p.id"
+    )
+    .fetch_all(&pool)
+    .await?;
 
+    Ok(Json(Products { products: products }))
+}
