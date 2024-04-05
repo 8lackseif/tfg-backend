@@ -20,7 +20,6 @@ pub struct Product {
     tags: Option<String>,
 }
 
-
 #[derive(Debug, Serialize)]
 pub struct Products {
     products: Vec<Product>,
@@ -36,12 +35,12 @@ pub async fn query_products() -> Result<Json<Products>, MyError> {
         p.name,
         p.description,
         p.stock,
-        JSON_ARRAYAGG(t.name) AS tags
+        JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags
     FROM 
         products p
-    INNER JOIN 
+    LEFT JOIN 
         productsTotags pt ON p.id = pt.productID
-    INNER JOIN 
+    LEFT JOIN 
         tags t ON pt.tagID = t.id
     GROUP BY
         p.id"
