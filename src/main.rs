@@ -5,7 +5,7 @@
 
 mod database;
 
-use database::{products::{query_products, Product, Products}, users::{login_user, query_users, register_user, UserData}, MyError};
+use database::{products::{query_products, Product}, users::{login_user, query_users, register_user, UserData}, MyError};
 use dotenv::dotenv;
 
 use rocket_cors::{AllowedOrigins, CorsOptions};
@@ -27,7 +27,7 @@ async fn login(data: Json<UserData>) -> Result<String,MyError> {
 }
 
 #[get("/get_products")]
-async fn get_products() -> Result<Json<Products>,MyError> {
+async fn get_products() -> Result<Json<Vec<Product>>,MyError> {
     let products = query_products().await?;
     Ok(products)
 }

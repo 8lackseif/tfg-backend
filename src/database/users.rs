@@ -1,4 +1,4 @@
-use rocket::{serde::Deserialize};
+use rocket::serde::Deserialize;
 use super::{MyError, POOL};
 use argon2::{
     password_hash::{
@@ -10,7 +10,7 @@ use argon2::{
 use hmac::{Hmac, Mac};
 use jwt::SignWithKey;
 use sha2::Sha256;
-use std::{collections::BTreeMap, fmt::format};
+use std::collections::BTreeMap;
 
 
 

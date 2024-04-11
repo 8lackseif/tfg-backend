@@ -8,7 +8,10 @@ use argon2::{
 use hmac::{Hmac, Mac};
 use jwt::SignWithKey;
 use sha2::Sha256;
-use std::{collections::BTreeMap, fmt::format};
+use std::{
+    collections::{BTreeMap, HashMap},
+    fmt::format,
+};
 
 #[derive(Debug, Serialize)]
 pub struct Product {
@@ -18,35 +21,37 @@ pub struct Product {
     description: Option<String>,
     stock: Option<i32>,
     tags: Option<String>,
+    properties: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-pub struct Products {
-    products: Vec<Product>,
-}
-
-pub async fn query_products() -> Result<Json<Products>, MyError> {
+pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
     let pool = POOL.clone();
     let products = sqlx::query_as!(
         Product,
-        "SELECT 
-        p.id, 
-        p.code,
-        p.name,
-        p.description,
-        p.stock,
-        JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags
-    FROM 
-        products p
-    LEFT JOIN 
-        productsTotags pt ON p.id = pt.productID
-    LEFT JOIN 
-        tags t ON pt.tagID = t.id
-    GROUP BY
-        p.id"
+        "
+        SELECT p.id, 
+            p.code,
+            p.name,
+            p.description,
+            p.stock,
+            JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags,
+            pp.properties
+            FROM 
+                products p
+            LEFT JOIN 
+                productsTotags pt ON p.id = pt.productID
+            LEFT JOIN 
+                tags t ON pt.tagID = t.id
+            LEFT JOIN (
+                SELECT ProductID, JSON_OBJECTAGG(property, value) AS properties
+                FROM properties
+                GROUP BY ProductID
+                ) pp ON pp.ProductID = p.id 
+            GROUP BY
+                p.id;"
     )
     .fetch_all(&pool)
     .await?;
 
-    Ok(Json(Products { products: products }))
+    Ok(Json(products))
 }

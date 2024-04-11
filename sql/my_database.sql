@@ -2,7 +2,14 @@ create table users(
 	id int auto_increment primary key,
   username varchar(30) not null UNIQUE,
   pwd varchar(255) not null,
-  salt varchar(255) not null
+  rol varchar(30) not null
+);
+
+create table properties(
+	productid int,
+	property varchar(30),
+	value varchar(30) default "",
+	primary key (productid, property)
 );
 
 create table products(
