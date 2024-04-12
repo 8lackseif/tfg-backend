@@ -9,7 +9,8 @@ create table properties(
 	productid int,
 	property varchar(30),
 	value varchar(30) default "",
-	primary key (productid, property)
+	primary key (productid, property),
+  foreign key (productid) references products(id)
 );
 
 create table products(
