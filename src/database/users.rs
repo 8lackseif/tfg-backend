@@ -71,11 +71,14 @@ async fn get_user(username: &str) -> Result<User,MyError> {
     }   
 }
 
-
-pub async fn query_users(){
+pub async fn register_admin(username: &str, pwd: &str)-> Result<(), MyError> {
+    let argon2 = Argon2::default();
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = argon2.hash_password(pwd.as_bytes(), &salt).unwrap().to_string();
     let pool = POOL.clone();
-    let users = sqlx::query_as!(User,
-        "SELECT * FROM users").fetch_all(&pool).await.unwrap();
-
-    println!("{:?}",users);
+    sqlx::query!(
+        "INSERT INTO users values(0,?,?,'administrator')",username,password_hash)
+        .execute(&pool).await?;        
+    
+    Ok(())
 }
