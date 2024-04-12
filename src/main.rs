@@ -5,7 +5,7 @@
 
 mod database;
 
-use database::{products::{query_products, Product}, users::{login_user, query_users, register_user, UserData}, MyError};
+use database::{products::{query_products, Product}, users::{login_user, register_user, UserData}, MyError};
 use dotenv::dotenv;
 
 use rocket_cors::{AllowedOrigins, CorsOptions};
