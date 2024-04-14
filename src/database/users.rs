@@ -8,7 +8,7 @@ use argon2::{
     Argon2
 };
 use hmac::{Hmac, Mac};
-use jwt::SignWithKey;
+use jwt::{claims, SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
@@ -26,6 +26,7 @@ pub struct User {
 pub struct UserData {
     pub username: String,
     pub pwd:String,
+    pub token:Option<String>
 }
 
 pub async fn register_user(username: &str, pwd: &str)-> Result<(), MyError> {
@@ -45,7 +46,7 @@ pub async fn login_user(username: &str, pwd: &str) -> Result<String, MyError> {
     let parsed_hash = PasswordHash::new(&user.pwd).unwrap();
     let argon2 = Argon2::default();
     if argon2.verify_password(pwd.as_bytes(), &parsed_hash).is_ok() {
-        let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find DATABASE_URL on env").as_bytes()).unwrap();
+        let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find SECRET on env").as_bytes()).unwrap();
         let mut claims = BTreeMap::new();
         claims.insert("username", username);
         claims.insert("role", &user.rol);
@@ -69,6 +70,12 @@ async fn get_user(username: &str) -> Result<User,MyError> {
     else{
         Err(MyError::UserNotFoundError(format!("user {} not found",username)))
     }   
+}
+
+pub async fn check(token: &str) -> Result<String, MyError> {
+    let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find SECRET on env").as_bytes()).unwrap();
+    let claims : BTreeMap<String, String> = token.verify_with_key(&key)?;
+    Ok(claims["role"].to_string())
 }
 
 pub async fn register_admin(username: &str, pwd: &str)-> Result<(), MyError> {

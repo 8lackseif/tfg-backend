@@ -21,7 +21,8 @@ pub struct Product {
     description: Option<String>,
     stock: Option<i32>,
     tags: Option<String>,
-    properties: Option<String>,
+    propertyNames: Option<String>,
+    propertyValues: Option<String>
 }
 
 pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
@@ -35,7 +36,8 @@ pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
             p.description,
             p.stock,
             JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags,
-            pp.properties
+            pp.propertyNames,
+            pp.propertyValues
             FROM 
                 products p
             LEFT JOIN 
@@ -43,7 +45,7 @@ pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
             LEFT JOIN 
                 tags t ON pt.tagID = t.id
             LEFT JOIN (
-                SELECT ProductID, JSON_OBJECTAGG(property, value) AS properties
+                SELECT ProductID, JSON_ARRAYAGG(IFNULL(property,'')) AS propertynames, JSON_ARRAYAGG(IFNULL(value,'')) AS propertyvalues
                 FROM properties
                 GROUP BY ProductID
                 ) pp ON pp.ProductID = p.id 
