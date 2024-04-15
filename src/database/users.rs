@@ -1,4 +1,4 @@
-use rocket::serde::Deserialize;
+use rocket::serde::{json::Json, Deserialize};
 use super::{MyError, POOL};
 use argon2::{
     password_hash::{
@@ -26,18 +26,18 @@ pub struct User {
 pub struct UserData {
     pub username: String,
     pub pwd:String,
+    pub rol: Option<String>,
     pub token:Option<String>
 }
 
-pub async fn register_user(username: &str, pwd: &str)-> Result<(), MyError> {
+pub async fn register_user(data: Json<UserData>)-> Result<(), MyError> {
     let argon2 = Argon2::default();
     let salt = SaltString::generate(&mut OsRng);
-    let password_hash = argon2.hash_password(pwd.as_bytes(), &salt).unwrap().to_string();
+    let password_hash = argon2.hash_password(data.pwd.as_bytes(), &salt).unwrap().to_string();
     let pool = POOL.clone();
     sqlx::query!(
-        "INSERT INTO users values(0,?,?,'user')",username,password_hash)
+        "INSERT INTO users values(0,?,?,?)",data.username,password_hash,data.rol)
         .execute(&pool).await?;        
-    
     Ok(())
 }
 
@@ -76,16 +76,4 @@ pub async fn check(token: &str) -> Result<String, MyError> {
     let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find SECRET on env").as_bytes()).unwrap();
     let claims : BTreeMap<String, String> = token.verify_with_key(&key)?;
     Ok(claims["role"].to_string())
-}
-
-pub async fn register_admin(username: &str, pwd: &str)-> Result<(), MyError> {
-    let argon2 = Argon2::default();
-    let salt = SaltString::generate(&mut OsRng);
-    let password_hash = argon2.hash_password(pwd.as_bytes(), &salt).unwrap().to_string();
-    let pool = POOL.clone();
-    sqlx::query!(
-        "INSERT INTO users values(0,?,?,'administrator')",username,password_hash)
-        .execute(&pool).await?;        
-    
-    Ok(())
 }

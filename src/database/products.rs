@@ -13,8 +13,17 @@ use std::{
     fmt::format,
 };
 
+#[derive(Debug,FromForm,Deserialize)]
+pub struct addProduct {
+    pub code: String,
+    pub name: String,
+    pub description: String,
+    pub stock: i32,
+    pub token: String
+}
+
 #[derive(Debug, Serialize)]
-pub struct Product {
+pub struct ProductDTO {
     id: i32,
     code: String,
     name: String,
@@ -25,10 +34,10 @@ pub struct Product {
     propertyValues: Option<String>
 }
 
-pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
+pub async fn query_products() -> Result<Json<Vec<ProductDTO>>, MyError> {
     let pool = POOL.clone();
     let products = sqlx::query_as!(
-        Product,
+        ProductDTO,
         "
         SELECT p.id, 
             p.code,
@@ -56,4 +65,12 @@ pub async fn query_products() -> Result<Json<Vec<Product>>, MyError> {
     .await?;
 
     Ok(Json(products))
+}
+
+pub async fn add_product_api(product: Json<addProduct>) -> Result<(),MyError> {
+    let pool = POOL.clone();
+    sqlx::query!(
+        "INSERT INTO products VALUES(0,?,?,?,?)",product.code, product.name, product.description, product.stock)
+        .execute(&pool).await?;
+    Ok(())
 }
