@@ -8,16 +8,14 @@ use argon2::{
     Argon2
 };
 use hmac::{Hmac, Mac};
-use jwt::{claims, SignWithKey, VerifyWithKey};
+use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
 
 
 #[derive(Debug)]
-pub struct User {
-    id : i32,
-    username : String,
+pub struct UserLog {
     pwd : String,
     rol : String
 }
@@ -41,14 +39,14 @@ pub async fn register_user(data: Json<UserData>)-> Result<(), MyError> {
     Ok(())
 }
 
-pub async fn login_user(username: &str, pwd: &str) -> Result<String, MyError> {
-    let user: User = get_user(username).await?;
+pub async fn login_user(data: Json<UserData>) -> Result<String, MyError> {
+    let user: UserLog = get_user(&data.username).await?;
     let parsed_hash = PasswordHash::new(&user.pwd).unwrap();
     let argon2 = Argon2::default();
-    if argon2.verify_password(pwd.as_bytes(), &parsed_hash).is_ok() {
+    if argon2.verify_password(data.pwd.as_bytes(), &parsed_hash).is_ok() {
         let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find SECRET on env").as_bytes()).unwrap();
         let mut claims = BTreeMap::new();
-        claims.insert("username", username);
+        claims.insert("username", &data.username);
         claims.insert("role", &user.rol);
         let token_str = claims.sign_with_key(&key).unwrap();
         Ok(token_str)
@@ -58,10 +56,10 @@ pub async fn login_user(username: &str, pwd: &str) -> Result<String, MyError> {
     }
 }
 
-async fn get_user(username: &str) -> Result<User,MyError> {
+async fn get_user(username: &str) -> Result<UserLog,MyError> {
     let pool = POOL.clone();
-    let user = sqlx::query_as!(User,
-        "SELECT * FROM users WHERE username=?",username)
+    let user = sqlx::query_as!(UserLog,
+        "SELECT pwd, rol FROM users WHERE username=?",username)
         .fetch_optional(&pool).await?;
     
     if let Some (u) = user {
