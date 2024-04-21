@@ -17,6 +17,15 @@ pub struct DeleteProduct {
     pub id: i32
 }
 
+#[derive(Debug,FromForm,Deserialize)]
+pub struct ModifyProduct {
+    pub token: String,
+    pub id: i32,
+    pub code: String,
+    pub name: String,
+    pub description: String
+}
+
 #[derive(Debug, Serialize)]
 pub struct ProductDTO {
     id: i32,
@@ -74,6 +83,14 @@ pub async fn delete_product_api(id: i32) -> Result<(),MyError> {
     let pool = POOL.clone();
     sqlx::query!(
         "DELETE FROM products where id = ?",id)
+        .execute(&pool).await?;
+    Ok(())
+}
+
+pub async fn modify_product_api(product: Json<ModifyProduct>) -> Result<(),MyError> {
+    let pool = POOL.clone();
+    sqlx::query!(
+        "UPDATE products SET code = ?, name = ?, description = ? where id = ?",product.code, product.name, product.description, product.id)
         .execute(&pool).await?;
     Ok(())
 }

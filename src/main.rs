@@ -8,7 +8,7 @@ extern crate lazy_static;
 mod database;
 
 use database::{
-    products::{query_products,add_product_api, AddProduct,delete_product_api,DeleteProduct, ProductDTO},
+    products::{add_product_api, delete_product_api, modify_product_api, query_products, AddProduct, DeleteProduct, ModifyProduct, ProductDTO},
     users::{check, login_user, register_user, UserData},
     MyError,
 };
@@ -68,6 +68,16 @@ async fn delete_product(product: Json<DeleteProduct>) -> Result<String, MyError>
     Ok("product deleted".to_string())
 }
 
+#[post("/modify_product",format="json", data = "<product>")]
+async fn modify_product(product:Json<ModifyProduct>) -> Result<String,MyError> {
+    let result = check(&product.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("".to_string()));
+    }
+    modify_product_api(product).await?;
+    Ok("product modified".to_string())
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -77,7 +87,7 @@ async fn main() {
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
-        .mount("/", routes![login, register, get_products,add_product,delete_product])
+        .mount("/", routes![login, register, get_products,add_product,delete_product, modify_product])
         .launch()
         .await
         .unwrap();
