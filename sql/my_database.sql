@@ -11,7 +11,7 @@ create table products(
   name varchar(30) not null,
   description varchar(50) default "",
   stock int default 0,
-  image_url varchar(255)
+  image_url varchar(255) default ""
 );
 
 create table tags(
