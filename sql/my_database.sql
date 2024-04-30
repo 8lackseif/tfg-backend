@@ -5,25 +5,26 @@ create table users(
   rol varchar(30) not null
 );
 
+create table products(
+  id int auto_increment primary key,
+  code varchar(30) not null UNIQUE,
+  name varchar(30) not null,
+  description varchar(50) default "",
+  stock int default 0,
+  image_url varchar(255)
+);
+
+create table tags(
+  id int auto_increment primary key,
+  name varchar(30) not null
+);
+
 create table properties(
 	productid int,
 	property varchar(30),
 	value varchar(30) default "",
 	primary key (productid, property),
   foreign key (productid) references products(id)
-);
-
-create table products(
-  id int auto_increment primary key,
-  code varchar(30) not null UNIQUE,
-  name varchar(30) not null,
-  description varchar(50) default "",
-  stock int default 0
-);
-
-create table tags(
-  id int auto_increment primary key,
-  name varchar(30) not null
 );
 
 create table productsTotags(
