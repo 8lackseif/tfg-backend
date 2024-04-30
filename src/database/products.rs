@@ -26,6 +26,21 @@ pub struct ModifyProduct {
     pub description: String
 }
 
+#[derive(Debug,FromForm,Deserialize)]
+pub struct AddProperty {
+    pub token: String,
+    pub id: i32,
+    pub property_name: String,
+    pub property_value: String
+}
+
+#[derive(Debug,FromForm,Deserialize)]
+pub struct DeleteProperty {
+    pub token: String,
+    pub id: i32,
+    pub property_name: String,
+}
+
 #[derive(Debug, Serialize)]
 pub struct ProductDTO {
     id: i32,
@@ -91,6 +106,22 @@ pub async fn modify_product_api(product: Json<ModifyProduct>) -> Result<(),MyErr
     let pool = POOL.clone();
     sqlx::query!(
         "UPDATE products SET code = ?, name = ?, description = ? where id = ?",product.code, product.name, product.description, product.id)
+        .execute(&pool).await?;
+    Ok(())
+}
+
+pub async fn add_property_api(property: Json<AddProperty>) -> Result<(),MyError> {
+    let pool = POOL.clone();
+    sqlx::query!(
+        "INSERT INTO properties VALUES(?,?,?)", property.id, property.property_name, property.property_value)
+        .execute(&pool).await?;
+    Ok(())
+}
+
+pub async fn delete_property_api(property: Json<DeleteProperty>) -> Result<(), MyError> {
+    let pool = POOL.clone();
+    sqlx::query!(
+        "DELETE FROM properties WHERE productid = ? and property = ?", property.id, property.property_name)
         .execute(&pool).await?;
     Ok(())
 }

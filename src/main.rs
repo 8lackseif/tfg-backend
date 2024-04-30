@@ -8,7 +8,7 @@ extern crate lazy_static;
 mod database;
 
 use database::{
-    products::{add_product_api, delete_product_api, modify_product_api, query_products, AddProduct, DeleteProduct, ModifyProduct, ProductDTO},
+    products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products, AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO},
     users::{check, login_user, register_user, UserData},
     MyError,
 };
@@ -25,7 +25,7 @@ async fn register(data: Json<UserData>) -> Result<String, MyError> {
     }
 
     if result != "administrator" {
-        return Err(MyError::ForbiddenError("".to_string()));
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
     }
 
     register_user(data).await?;
@@ -62,7 +62,7 @@ async fn add_product(product: Json<AddProduct>) -> Result<String, MyError> {
 async fn delete_product(product: Json<DeleteProduct>) -> Result<String, MyError> {
     let result = check(&product.token).await?;
     if result == "guest" {
-        return Err(MyError::ForbiddenError("".to_string()));
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
     }
     delete_product_api(product.id).await?;
     Ok("product deleted".to_string())
@@ -72,10 +72,30 @@ async fn delete_product(product: Json<DeleteProduct>) -> Result<String, MyError>
 async fn modify_product(product:Json<ModifyProduct>) -> Result<String,MyError> {
     let result = check(&product.token).await?;
     if result == "guest" {
-        return Err(MyError::ForbiddenError("".to_string()));
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
     }
     modify_product_api(product).await?;
     Ok("product modified".to_string())
+}
+
+#[post("/add_property",format="json", data = "<property>")]
+async fn add_property(property: Json<AddProperty>) -> Result<String, MyError> {
+    let result = check(&property.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    add_property_api(property).await?;
+    Ok("property added".to_string())
+}
+
+#[post("/delete_property",format="json", data = "<property>")]
+async fn delete_property(property: Json<DeleteProperty>) -> Result<String, MyError> {
+    let result = check(&property.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    delete_property_api(property).await?;
+    Ok("property added".to_string())
 }
 
 #[tokio::main]
@@ -87,7 +107,7 @@ async fn main() {
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
-        .mount("/", routes![login, register, get_products,add_product,delete_product, modify_product])
+        .mount("/", routes![login, register, get_products,add_product,delete_product, modify_product, delete_property, add_property])
         .launch()
         .await
         .unwrap();
