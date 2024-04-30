@@ -8,7 +8,8 @@ pub struct AddProduct {
     pub name: String,
     pub description: String,
     pub stock: i32,
-    pub token: String
+    pub token: String,
+    pub image_url: String
 }
 
 #[derive(Debug,FromForm,Deserialize)]
@@ -23,7 +24,8 @@ pub struct ModifyProduct {
     pub id: i32,
     pub code: String,
     pub name: String,
-    pub description: String
+    pub description: String,
+    pub image_url: String
 }
 
 #[derive(Debug, Serialize)]
@@ -34,6 +36,7 @@ pub struct ProductDTO {
     description: Option<String>,
     stock: Option<i32>,
     tags: Option<String>,
+    image_url: Option<String>,
     property_names: Option<String>,
     property_values: Option<String>
 }
@@ -48,6 +51,7 @@ pub async fn query_products() -> Result<Json<Vec<ProductDTO>>, MyError> {
             p.name,
             p.description,
             p.stock,
+            p.image_url,
             JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags,
             pp.property_names,
             pp.property_values
@@ -74,7 +78,7 @@ pub async fn query_products() -> Result<Json<Vec<ProductDTO>>, MyError> {
 pub async fn add_product_api(product: Json<AddProduct>) -> Result<(),MyError> {
     let pool = POOL.clone();
     sqlx::query!(
-        "INSERT INTO products VALUES(0,?,?,?,?)",product.code, product.name, product.description, product.stock)
+        "INSERT INTO products VALUES(0,?,?,?,?,?)",product.code, product.name, product.description, product.stock, product.image_url)
         .execute(&pool).await?;
     Ok(())
 }
@@ -90,7 +94,7 @@ pub async fn delete_product_api(id: i32) -> Result<(),MyError> {
 pub async fn modify_product_api(product: Json<ModifyProduct>) -> Result<(),MyError> {
     let pool = POOL.clone();
     sqlx::query!(
-        "UPDATE products SET code = ?, name = ?, description = ? where id = ?",product.code, product.name, product.description, product.id)
+        "UPDATE products SET code = ?, name = ?, description = ?, image_url = ? where id = ?",product.code, product.name, product.description, product.image_url, product.id)
         .execute(&pool).await?;
     Ok(())
 }
