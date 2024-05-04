@@ -3,6 +3,7 @@ use thiserror::Error;
 
 pub mod users;
 pub mod products;
+pub mod tags;
 
 lazy_static!{
     static ref POOL: Pool<MySql> = MySqlPoolOptions::new()

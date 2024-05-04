@@ -8,9 +8,10 @@ extern crate lazy_static;
 mod database;
 
 use database::{
-    products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products, AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO},
-    users::{check, login_user, register_user, UserData},
-    MyError,
+    products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products,
+                AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO},
+    tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, ModifyProductToTag, ModifyTags, TagsDTO},
+    users::{check, login_user, register_user, UserData}, MyError
 };
 use dotenv::dotenv;
 
@@ -98,6 +99,54 @@ async fn delete_property(property: Json<DeleteProperty>) -> Result<String, MyErr
     Ok("property added".to_string())
 }
 
+#[post("/query_tags", data = "<token>")]
+async fn get_tags(token:String) -> Result<Json<Vec<TagsDTO>>, MyError> {
+    check(&token).await?;
+    let tags = query_tags().await?;
+    Ok(tags)
+}
+
+#[post("/delete_tag", format = "json", data = "<tag>")]
+async fn delete_tag(tag: Json<ModifyTags>) -> Result<String, MyError> {
+    let result = check(&tag.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    delete_tag_api(tag).await?;
+    Ok("tag deleted".to_string())
+}
+
+#[post("/add_tag", format = "json", data = "<tag>")]
+async fn add_tag(tag: Json<ModifyTags>) -> Result<String, MyError> {
+    let result = check(&tag.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    add_tag_api(tag).await?;
+    Ok("tag added".to_string())
+}
+
+#[post("/bind_tag", format = "json", data = "<tag>")]
+async fn bind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
+    let result = check(&tag.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    bind_tag_api(tag).await?;
+    Ok("tag binded".to_string())
+}
+
+#[post("/unbind_tag", format = "json", data = "<tag>")]
+async fn unbind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
+    let result = check(&tag.token).await?;
+    if result == "guest" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+    unbind_tag_api(tag).await?;
+    Ok("tag unbinded".to_string())
+}
+
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -107,7 +156,10 @@ async fn main() {
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
-        .mount("/", routes![login, register, get_products,add_product,delete_product, modify_product, delete_property, add_property])
+        .mount("/", routes![login, register,
+                            get_products,add_product,delete_product, modify_product,
+                            delete_property, add_property,
+                            get_tags, delete_tag, add_tag, bind_tag, unbind_tag])
         .launch()
         .await
         .unwrap();

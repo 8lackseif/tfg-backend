@@ -16,7 +16,7 @@ create table products(
 
 create table tags(
   id int auto_increment primary key,
-  name varchar(30) not null
+  name varchar(30) not null UNIQUE
 );
 
 create table properties(
