@@ -99,7 +99,7 @@ async fn delete_property(property: Json<DeleteProperty>) -> Result<String, MyErr
     Ok("property added".to_string())
 }
 
-#[post("/query_tags", data = "<token>")]
+#[post("/get_tags", data = "<token>")]
 async fn get_tags(token:String) -> Result<Json<Vec<TagsDTO>>, MyError> {
     check(&token).await?;
     let tags = query_tags().await?;
