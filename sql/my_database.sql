@@ -34,3 +34,11 @@ create table productsTotags(
   foreign key (productID) references products(id) on delete cascade on update cascade,
   foreign key (tagID) references tags(id) on delete cascade on update cascade
 );
+
+create table stockVar(
+  varID int auto_increment primary key,
+  productID int not null,
+  varDate date not null,
+  quantity int not null,
+  foreign key (productID) references products(id) on delete cascade on update cascade
+);

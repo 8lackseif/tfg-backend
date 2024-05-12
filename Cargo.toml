@@ -13,6 +13,6 @@ rocket = { version = "0.5", features = ["json"] }
 rocket_cors = "0.6.0"
 serde = "1.0.197"
 sha2 = "0.10.8"
-sqlx = { version = "0.7", features = [ "runtime-tokio", "mysql"] }
+sqlx = { version = "0.7", features = ["runtime-tokio", "mysql", "chrono"] }
 thiserror = "1.0.58"
 tokio = { version = "1", features = ["full"] }
