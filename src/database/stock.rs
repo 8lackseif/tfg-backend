@@ -43,7 +43,7 @@ pub async fn change_stocks(stocks: &Vec<StockVar>) -> Result<(),MyError> {
     let pool = POOL.clone();
     for s in stocks {
         sqlx::query!(
-            "UPDATE products SET stock = stock + ? WHERE id = ?", s.product_id, s.quantity)
+            "UPDATE products SET stock = stock + ? WHERE id = ?", s.quantity, s.product_id)
             .execute(&pool).await?;
     }
    
