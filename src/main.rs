@@ -10,7 +10,7 @@ mod database;
 use database::{
     products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products,
                 AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO}, 
-                stock::{change_stock, add_stock_var, AddStockVar}, 
+                stock::{add_stocks, change_stocks, get_stocks_api, AddStocks, StockDto}, 
                 tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, ModifyProductToTag, ModifyTags, TagsDTO}, 
                 users::{check, login_user, register_user, UserData},
                 MyError
@@ -148,15 +148,22 @@ async fn unbind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
     Ok("tag unbinded".to_string())
 }
 
-#[post("/var_stock", format = "json", data = "<stock_var>")]
-async fn var_stock(stock_var: Json<AddStockVar>) -> Result<String, MyError> {
-    let result = check(&stock_var.token).await?;
+#[post("/var_stock", format = "json", data = "<stocks_var>")]
+async fn var_stock(stocks_var: Json<AddStocks>) -> Result<String, MyError> {
+    let result = check(&stocks_var.token).await?;
     if result == "guest" {
         return Err(MyError::ForbiddenError("you don't have permission".to_string()));
     }
-    change_stock(&stock_var).await?;
-    add_stock_var(&stock_var).await?;
-    Ok("tag unbinded".to_string())
+    change_stocks(&stocks_var.stocks).await?;
+    add_stocks(&stocks_var.stocks).await?;
+    Ok("stock changed".to_string())
+}
+
+#[post("/get_stocks", data = "<token>")]
+async fn get_stocks(token:String) -> Result<Json<Vec<StockDto>>, MyError> {
+    check(&token).await?;
+    let stocks = get_stocks_api().await?;
+    Ok(stocks)
 }
 
 #[tokio::main]
@@ -172,7 +179,7 @@ async fn main() {
                             get_products,add_product,delete_product, modify_product,
                             delete_property, add_property,
                             get_tags, delete_tag, add_tag, bind_tag, unbind_tag,
-                            var_stock])
+                            var_stock, get_stocks])
         .launch()
         .await
         .unwrap();
