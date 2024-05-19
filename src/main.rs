@@ -10,7 +10,7 @@ mod database;
 use database::{
     products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products,
                 AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO}, 
-                stock::{add_stocks, change_stocks, get_stocks_api, AddStocks, StockDto}, 
+                stock::{add_stocks, change_stocks, get_stock_history_api, get_stocks_api, AddStocks, StockDto, StockHistory, ProductStockHistory}, 
                 tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, ModifyProductToTag, ModifyTags, TagsDTO}, 
                 users::{check, login_user, register_user, UserData},
                 MyError
@@ -166,6 +166,13 @@ async fn get_stocks(token:String) -> Result<Json<Vec<StockDto>>, MyError> {
     Ok(stocks)
 }
 
+#[post("/get_stock_history", format = "json", data = "<query>")]
+async fn get_stock_history(query:Json<ProductStockHistory>) -> Result <Json<Vec<StockHistory>>,MyError> {
+    check(&query.token).await?;
+    let data = get_stock_history_api(query.id).await?;
+    Ok(data)
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -179,7 +186,7 @@ async fn main() {
                             get_products,add_product,delete_product, modify_product,
                             delete_property, add_property,
                             get_tags, delete_tag, add_tag, bind_tag, unbind_tag,
-                            var_stock, get_stocks])
+                            var_stock, get_stocks, get_stock_history])
         .launch()
         .await
         .unwrap();
