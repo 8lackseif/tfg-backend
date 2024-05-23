@@ -8,6 +8,12 @@ pub struct TagsDTO {
     name: String
 }
 
+#[derive(Debug,Serialize)]
+pub struct PopularTag {
+    tag_name: Option<String>,
+    count: i64
+}
+
 #[derive(Debug,FromForm,Deserialize)]
 pub struct ModifyTags {
     pub token: String,
@@ -24,7 +30,7 @@ pub struct ModifyProductToTag {
 pub async fn query_tags() -> Result<Json<Vec<TagsDTO>>,MyError> {
     let pool = POOL.clone();
     let tags = sqlx::query_as!(TagsDTO,
-        "select name from tags")
+        "SELECT name FROM tags")
         .fetch_all(&pool).await?;
     Ok(Json(tags))
 }
@@ -59,6 +65,17 @@ pub async fn unbind_tag_api(tag:Json<ModifyProductToTag>) -> Result<(), MyError>
         "DELETE FROM productsTotags where productID = ? AND tagID IN (SELECT id FROM tags WHERE name = ?)", tag.product_id, tag.name)
         .execute(&pool).await?;
     Ok(())
+}
+
+pub async fn get_popular_tags_api() -> Result<Json<Vec<PopularTag>>, MyError> {
+    let pool = POOL.clone();
+    let tags = sqlx::query_as!(PopularTag,
+        "SELECT t.name AS tag_name, COUNT(pt.tagID) AS count
+         FROM productsTotags pt
+         LEFT JOIN tags t ON t.id  = pt.tagID 
+         GROUP BY pt.tagID;")
+        .fetch_all(&pool).await?;
+    Ok(Json(tags))
 }
 
 

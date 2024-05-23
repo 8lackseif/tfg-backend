@@ -11,7 +11,7 @@ use database::{
     products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products,
                 AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO}, 
                 stock::{add_stocks, change_stocks, get_stock_history_api, get_stocks_api, AddStocks, StockDto, StockHistory, ProductStockHistory}, 
-                tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, ModifyProductToTag, ModifyTags, TagsDTO}, 
+                tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, get_popular_tags_api, ModifyProductToTag, ModifyTags, TagsDTO, PopularTag}, 
                 users::{check, login_user, register_user, UserData},
                 MyError
 };
@@ -173,6 +173,13 @@ async fn get_stock_history(query:Json<ProductStockHistory>) -> Result <Json<Vec<
     Ok(data)
 }
 
+#[post("/get_popular_tags", data = "<token>")]
+async fn get_popular_tags(token:String) -> Result<Json<Vec<PopularTag>>, MyError> {
+    check(&token).await?;
+    let popular_tags = get_popular_tags_api().await?;
+    Ok(popular_tags)
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -185,7 +192,7 @@ async fn main() {
         .mount("/", routes![login, register,
                             get_products,add_product,delete_product, modify_product,
                             delete_property, add_property,
-                            get_tags, delete_tag, add_tag, bind_tag, unbind_tag,
+                            get_tags, delete_tag, add_tag, bind_tag, unbind_tag, get_popular_tags,
                             var_stock, get_stocks, get_stock_history])
         .launch()
         .await
