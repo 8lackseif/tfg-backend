@@ -56,8 +56,9 @@ async fn add_product(product: Json<AddProduct>) -> Result<String, MyError> {
         return Err(MyError::ForbiddenError("".to_string()));
     }
 
+    add_product_api(&product).await?;
     add_stock_from_code(&product.code, product.stock).await?;
-    add_product_api(product).await?;
+
 
     Ok("product added".to_string())
 }

@@ -90,7 +90,7 @@ pub async fn query_products() -> Result<Json<Vec<ProductDTO>>, MyError> {
     Ok(Json(products))
 }
 
-pub async fn add_product_api(product: Json<AddProduct>) -> Result<(),MyError> {
+pub async fn add_product_api(product: &Json<AddProduct>) -> Result<(),MyError> {
     let pool = POOL.clone();
     sqlx::query!(
         "INSERT INTO products VALUES(0,?,?,?,?,?)",product.code, product.name, product.description, product.stock, product.image_url)
