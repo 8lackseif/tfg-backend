@@ -10,7 +10,7 @@ mod database;
 use database::{
     products::{add_product_api, add_property_api, delete_product_api, delete_property_api, modify_product_api, query_products,
                 AddProduct, AddProperty, DeleteProduct, DeleteProperty, ModifyProduct, ProductDTO}, 
-                stock::{add_stocks, change_stocks, get_stock_history_api, get_stocks_api, AddStocks, StockDto, StockHistory, ProductStockHistory}, 
+                stock::{add_stocks, change_stocks, get_stock_history_api, get_stocks_api, add_stock_from_code,AddStocks, StockDto, StockHistory, ProductStockHistory}, 
                 tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, get_popular_tags_api, ModifyProductToTag, ModifyTags, TagsDTO, PopularTag}, 
                 users::{check, login_user, register_user, UserData},
                 MyError
@@ -56,6 +56,7 @@ async fn add_product(product: Json<AddProduct>) -> Result<String, MyError> {
         return Err(MyError::ForbiddenError("".to_string()));
     }
 
+    add_stock_from_code(&product.code, product.stock).await?;
     add_product_api(product).await?;
 
     Ok("product added".to_string())
