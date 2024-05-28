@@ -5,6 +5,7 @@ pub mod users;
 pub mod products;
 pub mod tags;
 pub mod stock;
+pub mod migration;
 
 lazy_static!{
     static ref POOL: Pool<MySql> = MySqlPoolOptions::new()
