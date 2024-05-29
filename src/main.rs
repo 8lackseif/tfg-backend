@@ -190,6 +190,18 @@ async fn export_data(token: String) -> Result<Json<ExportingDTO>, MyError> {
     Ok(export)
 }
 
+#[post("/import_data", format = "json", data = "<data>")]
+async fn import_data(data: Json<Importing>) -> Result<(), MyError> {
+    let result = check(&data.token).await?;
+    if result != "administrator" {
+        return Err(MyError::ForbiddenError("you don't have permission".to_string()));
+    }
+
+    import_api(data).await?;
+
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -204,7 +216,7 @@ async fn main() {
                             delete_property, add_property,
                             get_tags, delete_tag, add_tag, bind_tag, unbind_tag, get_popular_tags,
                             var_stock, get_stocks, get_stock_history,
-                            export_data])
+                            export_data, import_data])
         .launch()
         .await
         .unwrap();

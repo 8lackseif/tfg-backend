@@ -32,6 +32,7 @@ pub enum MyError{
     #[error("You don't have permission to access.")]
     #[response(status=403)]
     ForbiddenError(String)
+    
 }
 
 impl From<sqlx::Error> for MyError {
