@@ -13,6 +13,7 @@ use database::{
                 stock::{add_stocks, change_stocks, get_stock_history_api, get_stocks_api, add_stock_from_code,AddStocks, StockDto, StockHistory, ProductStockHistory}, 
                 tags::{add_tag_api, bind_tag_api, delete_tag_api, query_tags, unbind_tag_api, get_popular_tags_api, ModifyProductToTag, ModifyTags, TagsDTO, PopularTag}, 
                 users::{check, login_user, register_user, UserData},
+                migration::{ExportingDTO, Importing, export_api, import_api},
                 MyError
 };
 use dotenv::dotenv;
@@ -182,6 +183,13 @@ async fn get_popular_tags(token:String) -> Result<Json<Vec<PopularTag>>, MyError
     Ok(popular_tags)
 }
 
+#[post("/export_data", data = "<token>")]
+async fn export_data(token: String) -> Result<Json<ExportingDTO>, MyError> {
+    check(&token).await?;
+    let export = export_api().await?;
+    Ok(export)
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
@@ -195,7 +203,8 @@ async fn main() {
                             get_products,add_product,delete_product, modify_product,
                             delete_property, add_property,
                             get_tags, delete_tag, add_tag, bind_tag, unbind_tag, get_popular_tags,
-                            var_stock, get_stocks, get_stock_history])
+                            var_stock, get_stocks, get_stock_history,
+                            export_data])
         .launch()
         .await
         .unwrap();

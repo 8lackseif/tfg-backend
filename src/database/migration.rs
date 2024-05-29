@@ -63,35 +63,46 @@ pub struct ImportingStockVar {
     pub quantity: i32,
 }
 
-/* 
-pub async fn import_api() -> Result<Json<Vec<ExportingDTO>>, MyError> {
-    let query = "
-    SELECT p.id, 
-            p.code,
+pub async fn export_api() -> Result<Json<ExportingDTO>, MyError> {
+    let pool = POOL.clone();
+    let products = sqlx::query_as!(ExportingProductDTO,
+        "SELECT  p.code,
             p.name,
             p.description,
             p.stock,
             p.image_url,
-            JSON_ARRAYAGG(IFNULL(t.name,'')) AS tags,
-            pp.property_names,
-            pp.property_values
-            FROM 
-                products p
-            LEFT JOIN 
-                productsTotags pt ON p.id = pt.productID
-            LEFT JOIN 
-                tags t ON pt.tagID = t.id
-            LEFT JOIN (
-                SELECT ProductID, JSON_ARRAYAGG(IFNULL(property,'')) AS property_names, JSON_ARRAYAGG(IFNULL(value,'')) AS property_values
-                FROM properties
-                GROUP BY ProductID
-                ) pp ON pp.ProductID = p.id 
-            GROUP BY
-                p.id;
-    ";
+            JSON_ARRAYAGG(t.name) AS tags,
+            pp.properties,
+            sv.stock_var
+        FROM    products p
+        LEFT JOIN 
+            productsTotags pt ON p.id = pt.productID
+        LEFT JOIN 
+            tags t ON pt.tagID = t.id
+        LEFT JOIN (
+            SELECT ProductID, JSON_ARRAYAGG(JSON_OBJECT('property', property, 'value', value)) as properties
+            FROM properties
+            GROUP BY ProductID
+        ) pp ON pp.ProductID = p.id
+        LEFT JOIN (
+            SELECT productID, JSON_ARRAYAGG(JSON_OBJECT('var_date', varDate, 'quantity', quantity)) as stock_var
+            FROM stockVar
+            GROUP BY ProductID
+        ) sv ON sv.ProductID = p.id
+        GROUP BY p.id")
+        .fetch_all(&pool).await?;
 
-    let pool = POOL.clone();
-    let products = sqlx::query_as!(ExportingProductDTO, query).fetch_all(&pool).await?;
-    Ok(Json())
+    let users = sqlx::query_as!(ExportingUserDTO,"SELECT username, pwd, rol FROM users").fetch_all(&pool).await?;
+    
+    let export = ExportingDTO {
+        products: products,
+        users: users
+    };
+
+    Ok(Json(export))
 }
-*/
+
+pub async fn import_api(import: Importing) -> Result<(), MyError> {
+    
+    Ok(())
+}
