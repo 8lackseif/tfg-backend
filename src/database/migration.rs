@@ -1,10 +1,6 @@
 use super::{MyError, POOL};
 use sqlx::{MySql, Pool};
 use rocket::serde::{json::Json, Deserialize, Serialize};
-//use sqlx::types::time::Date;
-//use time::macros::format_description;
-//use std::fmt::format;
-
 
 #[derive(Debug, Serialize)]
 pub struct ExportingDTO {
@@ -215,9 +211,5 @@ async fn import_stock_var(product_id: i32, stock_var:&Vec<ImportingStockVar>, po
         query += &q;
     }
     sqlx::query(&query).execute(pool).await?;
-
-    // let format = format_description!("[year]-[month]-[day]");
-    // let date = "2023-11-25";
-    // let x = Date::parse(date, &format);
     Ok(())
 }
