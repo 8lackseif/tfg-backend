@@ -2,7 +2,8 @@ create table users(
 	id int auto_increment primary key,
   username varchar(30) not null UNIQUE,
   pwd varchar(255) not null,
-  rol varchar(30) not null
+  rol varchar(30) not null,
+  first_login tinyInt not null default 1
 );
 
 create table products(

@@ -12,12 +12,18 @@ use jwt::{SignWithKey, VerifyWithKey};
 use sha2::Sha256;
 use std::collections::BTreeMap;
 
-
+#[derive(Debug, FromForm, Deserialize)]
+pub struct ResetPwd {
+    username: String,
+    pwd: String,
+    pub token: String
+}
 
 #[derive(Debug)]
 pub struct UserLog {
     pwd : String,
-    rol : String
+    rol : String,
+    first_login: i8
 }
 
 #[derive(Debug,FromForm,Deserialize)]
@@ -34,7 +40,7 @@ pub async fn register_user(data: Json<UserData>)-> Result<(), MyError> {
     let password_hash = argon2.hash_password(data.pwd.as_bytes(), &salt).unwrap().to_string();
     let pool = POOL.clone();
     sqlx::query!(
-        "INSERT INTO users values(0,?,?,?)",data.username,password_hash,data.rol)
+        "INSERT INTO users values(0,?,?,?,1)",data.username,password_hash,data.rol)
         .execute(&pool).await?;        
     Ok(())
 }
@@ -48,6 +54,8 @@ pub async fn login_user(data: Json<UserData>) -> Result<String, MyError> {
         let mut claims = BTreeMap::new();
         claims.insert("username", &data.username);
         claims.insert("role", &user.rol);
+        let first_login = user.first_login.to_string();
+        claims.insert("first_login", &first_login);
         let token_str = claims.sign_with_key(&key).unwrap();
         Ok(token_str)
     }
@@ -59,7 +67,7 @@ pub async fn login_user(data: Json<UserData>) -> Result<String, MyError> {
 async fn get_user(username: &str) -> Result<UserLog,MyError> {
     let pool = POOL.clone();
     let user = sqlx::query_as!(UserLog,
-        "SELECT pwd, rol FROM users WHERE username=?",username)
+        "SELECT pwd, rol, first_login FROM users WHERE username=?",username)
         .fetch_optional(&pool).await?;
     
     if let Some (u) = user {
@@ -74,4 +82,15 @@ pub async fn check(token: &str) -> Result<String, MyError> {
     let key: Hmac<Sha256> = Hmac::new_from_slice(dotenv::var("SECRET").expect("failed to find SECRET on env").as_bytes()).unwrap();
     let claims : BTreeMap<String, String> = token.verify_with_key(&key)?;
     Ok(claims["role"].to_string())
+}
+
+pub async fn reset_password_api(data: Json<ResetPwd>) -> Result<(), MyError> {
+    let argon2 = Argon2::default();
+    let salt = SaltString::generate(&mut OsRng);
+    let password_hash = argon2.hash_password(data.pwd.as_bytes(), &salt).unwrap().to_string();
+    let pool = POOL.clone();
+    sqlx::query!(
+        "UPDATE users SET first_login = 0, pwd = ? WHERE username = ?",password_hash, data.username)
+        .execute(&pool).await?;        
+    Ok(())
 }
