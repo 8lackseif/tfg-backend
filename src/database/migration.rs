@@ -52,7 +52,7 @@ pub struct ImportingProduct {
     pub description: String,
     pub stock: i32,
     pub image_url: String,
-    pub tags: Vec<String>,
+    pub tags: Vec<Option<String>>,
     pub properties: Option<Vec<ImportingProperty>>,
     pub stock_var: Option<Vec<ImportingStockVar>>,
 }
@@ -172,7 +172,9 @@ async fn import_products(
             .await?;
 
         for t in &p.tags {
-            import_tag(pid.id, t.to_string(), pool).await?;
+            if let Some(tag) = t {
+                import_tag(pid.id, tag.to_string(), pool).await?;
+            }
         }
 
         if let Some(pp) = &p.properties {
