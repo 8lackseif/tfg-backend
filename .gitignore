@@ -15,3 +15,5 @@ Cargo.lock
 
 my_database/
 .env
+
+.sqlx

@@ -27,7 +27,7 @@ use database::{
 };
 use dotenv::dotenv;
 
-use rocket::serde::json::Json;
+use rocket::{serde::json::Json, Config};
 use rocket_cors::{AllowedOrigins, CorsOptions};
 
 #[post("/register", format = "json", data = "<data>")]
@@ -241,12 +241,23 @@ async fn reset_password(data: Json<ResetPwd>) -> Result<String, MyError> {
     Ok("password changed.".to_string())
 }
 
+#[get("/test")]
+async fn test() -> Result<String, MyError> {
+    Ok("Welcome to API!".to_string())
+}
+
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    let cors = CorsOptions::default()
+
+let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allow_credentials(true);
+
+        let config = Config{
+            address: "0.0.0.0".parse().unwrap(),
+            ..Default::default()
+        };
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
@@ -272,9 +283,11 @@ async fn main() {
                 get_stock_history,
                 export_data,
                 import_data,
-                reset_password
+                reset_password,
+                test
             ],
         )
+        .configure(config)
         .launch()
         .await
         .unwrap();
