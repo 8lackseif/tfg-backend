@@ -248,6 +248,8 @@ async fn test() -> Result<String, MyError> {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
     if get_user("admin").await.is_err() {
         let data: UserData = UserData {
             username: "admin".to_string(),
@@ -257,8 +259,6 @@ async fn main() {
         };
         register_user(Json(data)).await.unwrap();
     }
-
-    dotenv().ok();
 
     let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
