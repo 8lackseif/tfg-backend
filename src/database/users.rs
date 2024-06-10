@@ -64,7 +64,7 @@ pub async fn login_user(data: Json<UserData>) -> Result<String, MyError> {
     }
 }
 
-async fn get_user(username: &str) -> Result<UserLog,MyError> {
+pub async fn get_user(username: &str) -> Result<UserLog,MyError> {
     let pool = POOL.clone();
     let user = sqlx::query_as!(UserLog,
         "SELECT pwd, rol, first_login FROM users WHERE username=?",username)

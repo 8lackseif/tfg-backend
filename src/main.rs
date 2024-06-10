@@ -22,7 +22,7 @@ use database::{
         add_tag_api, bind_tag_api, delete_tag_api, get_popular_tags_api, query_tags,
         unbind_tag_api, ModifyProductToTag, ModifyTags, PopularTag, TagsDTO,
     },
-    users::{check, login_user, register_user, reset_password_api, ResetPwd, UserData},
+    users::{check, get_user, login_user, register_user, reset_password_api, ResetPwd, UserData},
     MyError,
 };
 use dotenv::dotenv;
@@ -248,16 +248,26 @@ async fn test() -> Result<String, MyError> {
 
 #[tokio::main]
 async fn main() {
+    if get_user("admin").await.is_err() {
+        let data: UserData = UserData {
+            username: "admin".to_string(),
+            pwd: "admin".to_string(),
+            rol: Some("administrator".to_string()),
+            token: Some("".to_string())
+        };
+        register_user(Json(data)).await.unwrap();
+    }
+
     dotenv().ok();
 
-let cors = CorsOptions::default()
+    let cors = CorsOptions::default()
         .allowed_origins(AllowedOrigins::all())
         .allow_credentials(true);
 
-        let config = Config{
-            address: "0.0.0.0".parse().unwrap(),
-            ..Default::default()
-        };
+    let config = Config {
+        address: "0.0.0.0".parse().unwrap(),
+        ..Default::default()
+    };
 
     rocket::build()
         .attach(cors.to_cors().unwrap())
