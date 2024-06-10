@@ -30,7 +30,7 @@ use dotenv::dotenv;
 use rocket::{serde::json::Json, Config};
 use rocket_cors::{AllowedOrigins, CorsOptions};
 
-#[post("/register", format = "json", data = "<data>")]
+#[post("/api/register", format = "json", data = "<data>")]
 async fn register(data: Json<UserData>) -> Result<String, MyError> {
     let mut result: String = "".to_string();
     if let Some(token) = &data.token {
@@ -48,20 +48,20 @@ async fn register(data: Json<UserData>) -> Result<String, MyError> {
     Ok("user registered".to_string())
 }
 
-#[post("/login", format = "json", data = "<data>")]
+#[post("/api/login", format = "json", data = "<data>")]
 async fn login(data: Json<UserData>) -> Result<String, MyError> {
     let token = login_user(data).await?;
     Ok(token)
 }
 
-#[post("/get_products", data = "<token>")]
+#[post("/api/get_products", data = "<token>")]
 async fn get_products(token: String) -> Result<Json<Vec<ProductDTO>>, MyError> {
     check(&token).await?;
     let products = query_products().await?;
     Ok(products)
 }
 
-#[post("/add_product", format = "json", data = "<product>")]
+#[post("/api/add_product", format = "json", data = "<product>")]
 async fn add_product(product: Json<AddProduct>) -> Result<String, MyError> {
     let result = check(&product.token).await?;
     if result == "guest" {
@@ -74,7 +74,7 @@ async fn add_product(product: Json<AddProduct>) -> Result<String, MyError> {
     Ok("product added".to_string())
 }
 
-#[post("/delete_product", format = "json", data = "<product>")]
+#[post("/api/delete_product", format = "json", data = "<product>")]
 async fn delete_product(product: Json<DeleteProduct>) -> Result<String, MyError> {
     let result = check(&product.token).await?;
     if result == "guest" {
@@ -86,7 +86,7 @@ async fn delete_product(product: Json<DeleteProduct>) -> Result<String, MyError>
     Ok("product deleted".to_string())
 }
 
-#[post("/modify_product", format = "json", data = "<product>")]
+#[post("/api/modify_product", format = "json", data = "<product>")]
 async fn modify_product(product: Json<ModifyProduct>) -> Result<String, MyError> {
     let result = check(&product.token).await?;
     if result == "guest" {
@@ -98,7 +98,7 @@ async fn modify_product(product: Json<ModifyProduct>) -> Result<String, MyError>
     Ok("product modified".to_string())
 }
 
-#[post("/add_property", format = "json", data = "<property>")]
+#[post("/api/add_property", format = "json", data = "<property>")]
 async fn add_property(property: Json<AddProperty>) -> Result<String, MyError> {
     let result = check(&property.token).await?;
     if result == "guest" {
@@ -110,7 +110,7 @@ async fn add_property(property: Json<AddProperty>) -> Result<String, MyError> {
     Ok("property added".to_string())
 }
 
-#[post("/delete_property", format = "json", data = "<property>")]
+#[post("/api/delete_property", format = "json", data = "<property>")]
 async fn delete_property(property: Json<DeleteProperty>) -> Result<String, MyError> {
     let result = check(&property.token).await?;
     if result == "guest" {
@@ -122,14 +122,14 @@ async fn delete_property(property: Json<DeleteProperty>) -> Result<String, MyErr
     Ok("property added".to_string())
 }
 
-#[post("/get_tags", data = "<token>")]
+#[post("/api/get_tags", data = "<token>")]
 async fn get_tags(token: String) -> Result<Json<Vec<TagsDTO>>, MyError> {
     check(&token).await?;
     let tags = query_tags().await?;
     Ok(tags)
 }
 
-#[post("/delete_tag", format = "json", data = "<tag>")]
+#[post("/api/delete_tag", format = "json", data = "<tag>")]
 async fn delete_tag(tag: Json<ModifyTags>) -> Result<String, MyError> {
     let result = check(&tag.token).await?;
     if result == "guest" {
@@ -153,7 +153,7 @@ async fn add_tag(tag: Json<ModifyTags>) -> Result<String, MyError> {
     Ok("tag added".to_string())
 }
 
-#[post("/bind_tag", format = "json", data = "<tag>")]
+#[post("/api/bind_tag", format = "json", data = "<tag>")]
 async fn bind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
     let result = check(&tag.token).await?;
     if result == "guest" {
@@ -165,7 +165,7 @@ async fn bind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
     Ok("tag binded".to_string())
 }
 
-#[post("/unbind_tag", format = "json", data = "<tag>")]
+#[post("/api/unbind_tag", format = "json", data = "<tag>")]
 async fn unbind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
     let result = check(&tag.token).await?;
     if result == "guest" {
@@ -177,7 +177,7 @@ async fn unbind_tag(tag: Json<ModifyProductToTag>) -> Result<String, MyError> {
     Ok("tag unbinded".to_string())
 }
 
-#[post("/var_stock", format = "json", data = "<stocks_var>")]
+#[post("/api/var_stock", format = "json", data = "<stocks_var>")]
 async fn var_stock(stocks_var: Json<AddStocks>) -> Result<String, MyError> {
     let result = check(&stocks_var.token).await?;
     if result == "guest" {
@@ -190,14 +190,14 @@ async fn var_stock(stocks_var: Json<AddStocks>) -> Result<String, MyError> {
     Ok("stock changed".to_string())
 }
 
-#[post("/get_stocks", data = "<token>")]
+#[post("/api/get_stocks", data = "<token>")]
 async fn get_stocks(token: String) -> Result<Json<Vec<StockDto>>, MyError> {
     check(&token).await?;
     let stocks = get_stocks_api().await?;
     Ok(stocks)
 }
 
-#[post("/get_stock_history", format = "json", data = "<query>")]
+#[post("/api/get_stock_history", format = "json", data = "<query>")]
 async fn get_stock_history(
     query: Json<ProductStockHistory>,
 ) -> Result<Json<Vec<StockHistory>>, MyError> {
@@ -206,21 +206,21 @@ async fn get_stock_history(
     Ok(data)
 }
 
-#[post("/get_popular_tags", data = "<token>")]
+#[post("/api/get_popular_tags", data = "<token>")]
 async fn get_popular_tags(token: String) -> Result<Json<Vec<PopularTag>>, MyError> {
     check(&token).await?;
     let popular_tags = get_popular_tags_api().await?;
     Ok(popular_tags)
 }
 
-#[post("/export_data", data = "<token>")]
+#[post("/api/export_data", data = "<token>")]
 async fn export_data(token: String) -> Result<Json<ExportingDTO>, MyError> {
     check(&token).await?;
     let export = export_api().await?;
     Ok(export)
 }
 
-#[post("/import_data", format = "json", data = "<data>")]
+#[post("/api/import_data", format = "json", data = "<data>")]
 async fn import_data(data: Json<Importing>) -> Result<String, MyError> {
     let result = check(&data.token).await?;
     if result != "administrator" {
@@ -234,14 +234,14 @@ async fn import_data(data: Json<Importing>) -> Result<String, MyError> {
     Ok("data imported successfully.".to_string())
 }
 
-#[post("/reset_pwd", format = "json", data = "<data>")]
+#[post("/api/reset_pwd", format = "json", data = "<data>")]
 async fn reset_password(data: Json<ResetPwd>) -> Result<String, MyError> {
     check(&data.token).await?;
     reset_password_api(data).await?;
     Ok("password changed.".to_string())
 }
 
-#[get("/test")]
+#[get("/api/test")]
 async fn test() -> Result<String, MyError> {
     Ok("Welcome to API!".to_string())
 }
