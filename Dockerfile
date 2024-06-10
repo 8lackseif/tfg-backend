@@ -3,7 +3,6 @@ WORKDIR /usr/src/tfg-backend
 COPY . .
 RUN rustup default nightly && cargo install --path .
 
-
 FROM debian:bullseye-slim
 
 RUN apt-get update && rm -rf /var/lib/apt/lists/*
