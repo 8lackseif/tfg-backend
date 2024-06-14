@@ -147,7 +147,10 @@ async fn import_users(users: &Vec<ImportingUser>, pool: &Pool<MySql>) -> Result<
         q.pop();
         query += &q;
     }
-    sqlx::query(&query).execute(pool).await?;
+
+    if !users.is_empty() {
+        sqlx::query(&query).execute(pool).await?;
+    }
 
     Ok(())
 }
